@@ -1,0 +1,19 @@
+[Unit]
+Description=Radon Poller
+After=network-online.target bluetooth.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=fish
+WorkingDirectory=/opt/radon-poller
+ExecStart=/opt/radon-poller/bin/radon-poller
+Restart=always
+RestartSec=5
+Environment=RADON_POLL_INTERVAL=30m
+Environment=RADON_HTTP_ADDR=:8080
+Environment=RADON_NAME_PREFIX=FR:R20:
+Environment=RADON_LOG_LEVEL=info
+
+[Install]
+WantedBy=multi-user.target
