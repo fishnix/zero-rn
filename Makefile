@@ -2,7 +2,7 @@ APP_NAME := radon-poller
 BIN_DIR := bin
 APP_PKG := ./cmd/radon-poller
 
-.PHONY: build build-pi test fmt tidy
+.PHONY: build build-pi test lint fmt tidy
 
 build:
 	go build -o $(BIN_DIR)/$(APP_NAME) $(APP_PKG)
@@ -12,6 +12,9 @@ build-pi:
 
 test:
 	go test ./...
+
+lint:
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest run
 
 fmt:
 	gofmt -w ./cmd ./internal

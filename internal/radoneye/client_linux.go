@@ -15,12 +15,6 @@ import (
 	"tinygo.org/x/bluetooth"
 )
 
-var (
-	serviceUUID = bluetooth.NewUUID([16]byte{0x23, 0x15, 0x00, 0x00, 0x12, 0x12, 0xef, 0xde, 0x15, 0x23, 0x78, 0x5f, 0xea, 0xbc, 0xd1, 0x23})
-	txUUID      = bluetooth.NewUUID([16]byte{0x24, 0x15, 0x00, 0x00, 0x12, 0x12, 0xef, 0xde, 0x15, 0x23, 0x78, 0x5f, 0xea, 0xbc, 0xd1, 0x23})
-	rxUUID      = bluetooth.NewUUID([16]byte{0x25, 0x15, 0x00, 0x00, 0x12, 0x12, 0xef, 0xde, 0x15, 0x23, 0x78, 0x5f, 0xea, 0xbc, 0xd1, 0x23})
-)
-
 const (
 	serviceUUIDString = "00001523-1212-efde-1523-785feabcd123"
 	txUUIDString      = "00001524-1212-efde-1523-785feabcd123"
@@ -99,7 +93,11 @@ func (c *LinuxClient) ReadOnce(ctx context.Context) (PollResult, error) {
 	if err != nil {
 		return PollResult{}, fmt.Errorf("connect to %s: %w", selected.Address.String(), err)
 	}
-	defer device.Disconnect()
+	defer func() {
+		if disconnectErr := device.Disconnect(); disconnectErr != nil {
+			c.logger.Warn("device disconnect failed", "address", selected.Address.String(), "error", disconnectErr)
+		}
+	}()
 
 	services, err := device.DiscoverServices(nil)
 	if err != nil {
@@ -131,10 +129,10 @@ func (c *LinuxClient) ReadOnce(ctx context.Context) (PollResult, error) {
 	for i := range chars {
 		ch := &chars[i]
 		u := strings.ToLower(ch.UUID().String())
-		switch {
-		case u == txUUIDString:
+		switch u {
+		case txUUIDString:
 			tx = ch
-		case u == rxUUIDString:
+		case rxUUIDString:
 			rx = ch
 		}
 	}
